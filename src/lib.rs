@@ -1,23 +1,24 @@
 use std::{collections::HashMap, hash::Hash};
+
 use rand::Rng;
 
 #[derive(Hash, Clone, PartialEq, Eq, Debug)]
 enum Token {
     Start,
     Text(String),
-    End
+    End,
 }
 
 struct TokenSampler {
     token_count: usize,
-    token_to_token_count: HashMap<Token, usize>
+    token_to_token_count: HashMap<Token, usize>,
 }
 
 impl TokenSampler {
     fn new() -> TokenSampler {
         TokenSampler {
             token_count: 0,
-            token_to_token_count: HashMap::new()
+            token_to_token_count: HashMap::new(),
         }
     }
 
@@ -40,19 +41,21 @@ impl TokenSampler {
 }
 
 pub struct MarkovTextModel<const CONTEXT_LENGTH: usize = 1> {
-    token_to_token_sampler: HashMap<[Token; CONTEXT_LENGTH], TokenSampler>
+    token_to_token_sampler: HashMap<[Token; CONTEXT_LENGTH], TokenSampler>,
 }
 
 impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
-
     /// Creates an empty character based MarkovTextModel, where the `CONTEXT_LENGTH` parameter is the context length in characters.
     pub fn new() -> MarkovTextModel<CONTEXT_LENGTH> {
-        assert!(CONTEXT_LENGTH > 0, "The context length must be greater than 0");
+        assert!(
+            CONTEXT_LENGTH > 0,
+            "The context length must be greater than 0"
+        );
         MarkovTextModel::<CONTEXT_LENGTH> {
-            token_to_token_sampler: HashMap::new()
+            token_to_token_sampler: HashMap::new(),
         }
     }
-    
+
     pub fn add_sample_text(&mut self, text: &str) {
         self.add_tokenized_sample_text(&self.tokenize(text));
     }
@@ -71,9 +74,13 @@ impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
             let next_token = self.token_to_token_sampler[&current_context].sample();
 
             match &next_token {
-                Token::Start => unreachable!("Start token should not be reachable after Start token"),
+                Token::Start => {
+                    unreachable!("Start token should not be reachable after Start token")
+                }
                 Token::End => return cumulative_text,
-                Token::Text(current_token_text) => cumulative_text = cumulative_text + &current_token_text
+                Token::Text(current_token_text) => {
+                    cumulative_text = cumulative_text + current_token_text
+                }
             }
 
             for i in 1..CONTEXT_LENGTH {
@@ -82,7 +89,7 @@ impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
             current_context[CONTEXT_LENGTH - 1] = next_token;
         }
     }
-    
+
     // TODO: Make this more user definable. Maybe with an optional closure when constructing the model?
     fn tokenize(&self, text: &str) -> Vec<Token> {
         let mut tokens = vec![Token::Start; CONTEXT_LENGTH];
@@ -92,18 +99,24 @@ impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
         tokens
     }
 
-    fn add_tokenized_sample_text(&mut self, tokenized_text: &Vec<Token>) {
+    fn add_tokenized_sample_text(&mut self, tokenized_text: &[Token]) {
         for window in tokenized_text.windows(CONTEXT_LENGTH + 1) {
-
             let mut context = [const { Token::Start }; CONTEXT_LENGTH];
 
-            for i in 0..CONTEXT_LENGTH {
-                context[i] = window[i].clone();
-            }
+            context[..CONTEXT_LENGTH].clone_from_slice(&window[..CONTEXT_LENGTH]);
 
             let next_token = &window[CONTEXT_LENGTH];
 
-            self.token_to_token_sampler.entry(context).or_insert(TokenSampler::new()).add_token(next_token.clone());
+            self.token_to_token_sampler
+                .entry(context)
+                .or_insert(TokenSampler::new())
+                .add_token(next_token.clone());
         }
+    }
+}
+
+impl<const CONTEXT_LENGTH: usize> Default for MarkovTextModel<CONTEXT_LENGTH> {
+    fn default() -> Self {
+        Self::new()
     }
 }

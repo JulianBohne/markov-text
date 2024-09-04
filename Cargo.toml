@@ -2,6 +2,12 @@
 name = "markov-text"
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+description = "A simple crate for creating a small markov model for text generation"
+readme = "README.md"
+repository = "https://github.com/JulianBohne/markov-text"
+keywords = ["random", "markov", "markov-chain", "markov-text"]
+categories = ["text-processing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

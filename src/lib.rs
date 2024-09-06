@@ -9,6 +9,7 @@ enum Token {
     End,
 }
 
+#[derive(Debug, Clone)]
 struct TokenSampler {
     token_count: usize,
     token_to_token_count: HashMap<Token, usize>,
@@ -40,6 +41,7 @@ impl TokenSampler {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct MarkovTextModel<const CONTEXT_LENGTH: usize = 1> {
     token_to_token_sampler: HashMap<[Token; CONTEXT_LENGTH], TokenSampler>,
 }
@@ -60,14 +62,14 @@ impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
         self.add_tokenized_sample_text(&self.tokenize(text));
     }
 
-    pub fn add_sample_texts(&mut self, texts: &Vec<&str>) {
+    pub fn add_sample_texts(&mut self, texts: &Vec<String>) {
         for text in texts {
             self.add_sample_text(text);
         }
     }
 
     pub fn generage_text(&self) -> String {
-        let mut current_context = [const { Token::Start }; CONTEXT_LENGTH];
+        let mut current_context = std::array::from_fn::<_, CONTEXT_LENGTH, _>(|_| Token::Start);
         let mut cumulative_text = "".to_owned();
 
         loop {
@@ -101,7 +103,7 @@ impl<const CONTEXT_LENGTH: usize> MarkovTextModel<CONTEXT_LENGTH> {
 
     fn add_tokenized_sample_text(&mut self, tokenized_text: &[Token]) {
         for window in tokenized_text.windows(CONTEXT_LENGTH + 1) {
-            let mut context = [const { Token::Start }; CONTEXT_LENGTH];
+            let mut context = std::array::from_fn::<_, CONTEXT_LENGTH, _>(|_| Token::Start);
 
             context[..CONTEXT_LENGTH].clone_from_slice(&window[..CONTEXT_LENGTH]);
 

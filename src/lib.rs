@@ -9,6 +9,7 @@ enum Token {
     End,
 }
 
+#[derive(Debug, Clone)]
 struct TokenSampler {
     token_count: usize,
     token_to_token_count: HashMap<Token, usize>,
@@ -40,6 +41,7 @@ impl TokenSampler {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct MarkovTextModel<const CONTEXT_LENGTH: usize = 1> {
     token_to_token_sampler: HashMap<[Token; CONTEXT_LENGTH], TokenSampler>,
 }
